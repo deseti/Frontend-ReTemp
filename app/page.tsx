@@ -72,7 +72,7 @@ export default function LoginPage() {
           margin: '0 auto 32px',
           boxShadow: '0 12px 40px var(--accent-glow), 0 0 60px rgba(16,185,129,0.12)',
         }} className="animate-pulse-glow">
-          <Zap size={44} color="#fff" fill="#fff" />
+          <img src="/retempo.svg" alt="ReTempo Logo" style={{width: '44px', height: '44px'}} />
         </div>
 
         <h1 style={{
