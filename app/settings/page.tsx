@@ -263,7 +263,7 @@ export default function SettingsPage() {
               <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 2 }}>
                 {hasPasskey
                   ? 'Transactions confirmed with fingerprint/Face ID'
-                  : 'Konfirmasi transaksi pakai sidik jari — set via Privy popup'}
+                  : 'Fingerprint transaction confirmation - set via Privy popup'}
               </div>
             </div>
           </div>
