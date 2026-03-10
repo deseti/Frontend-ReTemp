@@ -101,7 +101,7 @@ export default function SwapPage() {
             <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 24 }}>
               {amount} {tIn.symbol} → {tOut.symbol}
             </div>
-            {txHash && <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 24, wordBreak: 'break-all' }}>Tx: {txHash}</div>}
+            {txHash && <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 24, wordBreak: 'break-all' }}>Tx: <a href={`https://explore.tempo.xyz/tx/${txHash}`} target="_blank" rel="noreferrer" style={{color: 'var(--accent)'}}>{txHash}</a></div>}
             <button className="btn btn-primary" onClick={() => { setStep('idle'); setAmount(''); }} style={{ width: '100%' }}>
               Swap Again
             </button>
@@ -142,7 +142,7 @@ export default function SwapPage() {
                   <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
                     Balance: {balIn.balance} {tIn.symbol}
                   </span>
-                  <button onClick={() => setAmount(formatUnits(balIn.balanceRaw, tIn.decimals))} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0 }}>
+                  <button onClick={() => setAmount(formatUnits(balIn.balanceRaw, tIn.decimals))} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     Max
                   </button>
                 </div>
@@ -159,10 +159,10 @@ export default function SwapPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', transition: 'all 0.2s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.3)'; (e.currentTarget as HTMLElement).style.color = '#fff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 10px rgba(255,255,255,0.1)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
               >
-                <ArrowDown size={18} color="var(--text-muted)" />
+                <ArrowDown size={18} color="currentColor" />
               </button>
             </div>
 
@@ -195,7 +195,7 @@ export default function SwapPage() {
 
             {/* Route info */}
             <div style={{
-              background: 'rgba(16,185,129,0.06)', border: '1px solid var(--border-accent)',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 'var(--radius-md)', padding: '10px 14px', marginBottom: 20,
               fontSize: '0.78rem', color: 'var(--text-secondary)',
             }}>

@@ -20,13 +20,14 @@ export function BalanceCard() {
       {/* Background glow */}
       <div style={{
         position: 'absolute',
-        top: -40,
+        top: -30,
         left: '50%',
         transform: 'translateX(-50%)',
         width: 200,
         height: 120,
-        background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%)',
         pointerEvents: 'none',
+        animation: 'pulse-glow 4s ease-in-out infinite alternate',
       }} />
 
       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -38,7 +39,7 @@ export function BalanceCard() {
           <div className="skeleton" style={{ width: 160, height: 44, borderRadius: 8 }} />
         </div>
       ) : (
-        <div style={{
+        <div className="animate-fade-in" style={{
           fontFamily: 'var(--font-display)',
           fontSize: '2.8rem',
           fontWeight: 700,
@@ -46,9 +47,10 @@ export function BalanceCard() {
           letterSpacing: '-0.03em',
           lineHeight: 1,
           marginBottom: 4,
+          textShadow: '0 0 20px rgba(255,255,255,0.3)',
         }}>
           {hubBalance?.balance ?? '0.0000'}
-          <span style={{ fontSize: '1rem', color: 'var(--accent)', marginLeft: 8 }}>
+          <span style={{ fontSize: '1rem', color: 'var(--accent)', marginLeft: 8, textShadow: 'none' }}>
             {hubBalance?.symbol}
           </span>
         </div>
@@ -78,19 +80,30 @@ export function BalanceCard() {
               alignItems: 'center',
               gap: 4,
               padding: '8px 14px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(255,255,255,0.02)',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border)',
               minWidth: 80,
+              transition: 'background 0.2s, border-color 0.2s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
             }}>
-              <TokenIcon token={token} size={28} />
+              <div style={{ filter: 'grayscale(100%) brightness(1.5)' }}>
+                <TokenIcon token={token} size={28} />
+              </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                 {token.symbol}
               </span>
               {isLoading ? (
                 <div className="skeleton" style={{ width: 48, height: 12 }} />
               ) : (
-                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-primary)' }}>
                   {bal?.balance ?? '0.0000'}
                 </span>
               )}

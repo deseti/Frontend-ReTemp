@@ -36,7 +36,7 @@ export default function LoginPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'space-between',
-      background: 'linear-gradient(180deg, var(--bg-base) 0%, #081022 100%)',
+      background: 'var(--bg-base)',
       padding: '60px 28px 48px',
       maxWidth: 430,
       margin: '0 auto',
@@ -52,8 +52,9 @@ export default function LoginPage() {
         transform: 'translateX(-50%)',
         width: 400,
         height: 400,
-        background: 'radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 65%)',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 65%)',
         pointerEvents: 'none',
+        animation: 'pulse-glow 5s infinite alternate ease-in-out',
       }} />
 
       <div />
@@ -65,14 +66,15 @@ export default function LoginPage() {
           width: 88,
           height: 88,
           borderRadius: 26,
-          background: 'linear-gradient(135deg, var(--accent) 0%, #0d9488 100%)',
+          background: '#0a0a0a',
+          border: '1.5px solid rgba(255,255,255,0.2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 32px',
-          boxShadow: '0 12px 40px var(--accent-glow), 0 0 60px rgba(16,185,129,0.12)',
+          boxShadow: '0 0 40px rgba(255,255,255,0.1), inset 0 0 20px rgba(255,255,255,0.05)',
         }} className="animate-pulse-glow">
-          <img src="/retempo.svg" alt="ReTempo Logo" style={{width: '44px', height: '44px'}} />
+          <img src="/retempo.svg" alt="ReTempo Logo" style={{width: '44px', height: '44px', filter: 'brightness(0) invert(1)'}} />
         </div>
 
         <h1 style={{
@@ -83,6 +85,7 @@ export default function LoginPage() {
           letterSpacing: '-0.03em',
           lineHeight: 1.1,
           marginBottom: 12,
+          animation: 'glitch 4s infinite alternate none',
         }}>
           ReTempo
         </h1>
@@ -104,7 +107,7 @@ export default function LoginPage() {
             { icon: '🔒', label: 'Embedded Wallet' },
             { icon: '💱', label: 'Auto Swap' },
           ].map(pill => (
-            <div key={pill.label} className="badge badge-green" style={{ fontSize: '0.75rem', padding: '6px 14px' }}>
+            <div key={pill.label} className="badge badge-mono" style={{ fontSize: '0.75rem', padding: '6px 14px' }}>
               {pill.icon} {pill.label}
             </div>
           ))}
@@ -118,11 +121,9 @@ export default function LoginPage() {
         flexDirection: 'column',
         gap: 16,
       }}>
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
+        <div className="card-glass" style={{
           padding: '28px 24px',
+          borderTop: '1px solid rgba(255,255,255,0.3)',
         }}>
           <div style={{
             fontSize: '0.75rem',
@@ -140,7 +141,7 @@ export default function LoginPage() {
             onClick={login}
             style={{ width: '100%', padding: '16px', fontSize: '1rem', borderRadius: 'var(--radius-lg)' }}
           >
-            <Zap size={18} />
+            <Zap size={18} fill="currentColor" />
             Continue with Email / Google
           </button>
 

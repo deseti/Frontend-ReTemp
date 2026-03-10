@@ -37,11 +37,17 @@ function SettingRow({ icon, label, description, onClick, danger, badge, disabled
         width: '100%',
         cursor: disabled ? 'not-allowed' : 'pointer',
         textAlign: 'left',
-        transition: 'background 0.15s',
+        transition: 'background 0.15s, box-shadow 0.15s',
         opacity: disabled ? 0.5 : 1,
       }}
-      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+      onMouseEnter={e => { if (!disabled) {
+        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
+        (e.currentTarget as HTMLElement).style.boxShadow = 'inset 4px 0 0 rgba(255,255,255,0.4)';
+      } }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.background = 'transparent';
+        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+      }}
     >
       <div style={{
         width: 38, height: 38, borderRadius: 11,
@@ -59,8 +65,8 @@ function SettingRow({ icon, label, description, onClick, danger, badge, disabled
           {badge && (
             <span style={{
               fontSize: '0.62rem', fontWeight: 700, padding: '2px 7px',
-              background: 'rgba(16,185,129,0.15)', color: 'var(--accent)',
-              border: '1px solid rgba(16,185,129,0.3)', borderRadius: 99,
+              background: 'rgba(255,255,255,0.08)', color: 'var(--text-primary)',
+              border: '1px solid rgba(255,255,255,0.2)', borderRadius: 99,
               letterSpacing: '0.04em', textTransform: 'uppercase',
             }}>
               {badge}
@@ -140,9 +146,11 @@ export default function SettingsPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
             <div style={{
               width: 48, height: 48, borderRadius: 16,
-              background: 'linear-gradient(135deg, var(--accent) 0%, #0d9488 100%)',
+              background: 'linear-gradient(135deg, #222 0%, #0a0a0a 100%)',
+              border: '1px solid rgba(255,255,255,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
             }}>
               <Wallet size={22} color="#fff" />
             </div>
@@ -177,9 +185,9 @@ export default function SettingsPage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5,
                   padding: '6px 12px', borderRadius: 8,
-                  background: copied ? 'rgba(16,185,129,0.15)' : 'var(--bg-base)',
-                  border: `1px solid ${copied ? 'rgba(16,185,129,0.4)' : 'var(--border)'}`,
-                  color: copied ? 'var(--accent)' : 'var(--text-secondary)',
+                  background: copied ? 'rgba(255,255,255,0.1)' : 'var(--bg-base)',
+                  border: `1px solid ${copied ? 'rgba(255,255,255,0.3)' : 'var(--border)'}`,
+                  color: copied ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
@@ -198,6 +206,15 @@ export default function SettingsPage() {
                     background: 'var(--bg-base)', border: '1px solid var(--border)',
                     color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 600,
                     textDecoration: 'none',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)';
+                    (e.currentTarget as HTMLElement).style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                    (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
                   }}
                 >
                   <ExternalLink size={13} />
@@ -222,10 +239,10 @@ export default function SettingsPage() {
           }}>
             <div style={{
               width: 38, height: 38, borderRadius: 11,
-              background: hasPasskey ? 'rgba(16,185,129,0.12)' : 'var(--bg-elevated)',
-              border: `1.5px solid ${hasPasskey ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
+              background: hasPasskey ? 'rgba(255,255,255,0.08)' : 'var(--bg-elevated)',
+              border: `1.5px solid ${hasPasskey ? 'rgba(255,255,255,0.2)' : 'var(--border)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: hasPasskey ? 'var(--accent)' : 'var(--text-secondary)',
+              color: hasPasskey ? '#ffffff' : 'var(--text-secondary)',
               flexShrink: 0,
             }}>
               <Fingerprint size={17} />
@@ -235,9 +252,9 @@ export default function SettingsPage() {
                 Passkey / Biometric
                 <span style={{
                   fontSize: '0.62rem', fontWeight: 700, padding: '2px 7px',
-                  background: hasPasskey ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-                  color: hasPasskey ? 'var(--accent)' : '#f59e0b',
-                  border: `1px solid ${hasPasskey ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                  background: hasPasskey ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                  color: hasPasskey ? '#ffffff' : 'var(--text-muted)',
+                  border: `1px solid ${hasPasskey ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)'}`,
                   borderRadius: 99, letterSpacing: '0.04em', textTransform: 'uppercase',
                 }}>
                   {hasPasskey ? 'Active' : 'Not set'}
@@ -265,8 +282,6 @@ export default function SettingsPage() {
             label="Manage Linked Accounts"
             description="Email, Google, passkey — add or remove login methods"
             onClick={() => {
-              // Privy's built-in account linking is triggered via their UI
-              // Link to Privy dashboard or guide user
               window.open('https://privy.io', '_blank');
             }}
           />
@@ -286,7 +301,7 @@ export default function SettingsPage() {
           ].map(row => (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{row.label}</span>
-              <span style={{ fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 600, fontFamily: row.mono ? 'monospace' : 'inherit' }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-primary)', textShadow: '0 0 8px rgba(255,255,255,0.2)', fontWeight: 600, fontFamily: row.mono ? 'monospace' : 'inherit' }}>
                 {row.value}
               </span>
             </div>

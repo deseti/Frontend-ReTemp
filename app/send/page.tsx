@@ -100,7 +100,7 @@ export default function SendPage() {
             </div>
             {txHash && (
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 24, wordBreak: 'break-all' }}>
-                Tx: {txHash}
+                Tx: <a href={`https://explore.tempo.xyz/tx/${txHash}`} target="_blank" rel="noreferrer" style={{color: 'var(--accent)'}}>{txHash}</a>
               </div>
             )}
             <button className="btn btn-primary" onClick={() => { setStep('idle'); setAmount(''); setRecipient(''); }} style={{ width: '100%' }}>
@@ -174,16 +174,12 @@ export default function SendPage() {
               {balance && (
                 <button
                   onClick={() => setAmount(formatUnits(balance.balanceRaw, token.decimals))}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', marginTop: 6, padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', marginTop: 6, padding: 0, textDecoration: 'underline' }}
                 >
                   Use max
                 </button>
               )}
             </div>
-
-            {/* Routing info 
-                This block is now hidden for simple send because we only do peer to peer transfer 
-            */}
 
             {step === 'error' && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16, color: 'var(--red)', fontSize: '0.8rem' }}>

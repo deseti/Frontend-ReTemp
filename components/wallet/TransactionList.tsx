@@ -7,28 +7,28 @@ function TxIcon({ type }: { type: TxType }) {
   const map: Record<TxType, { icon: React.ReactNode; color: string; bgColor: string }> = {
     swap: {
       icon: <ArrowLeftRight size={16} />,
-      color: '#8b5cf6',
-      bgColor: 'rgba(139,92,246,0.15)',
+      color: '#a0a0a0', // grey
+      bgColor: 'rgba(255,255,255,0.06)',
     },
     send: {
       icon: <Send size={16} />,
-      color: 'var(--red)',
-      bgColor: 'rgba(244,63,94,0.12)',
+      color: 'var(--text-muted)', // dark grey
+      bgColor: 'rgba(255,255,255,0.04)',
     },
     receive: {
       icon: <Download size={16} />,
-      color: 'var(--green)',
-      bgColor: 'rgba(16,185,129,0.12)',
+      color: '#ffffff', // bright white
+      bgColor: 'rgba(255,255,255,0.1)',
     },
     invoice_paid: {
       icon: <FileText size={16} />,
-      color: '#f59e0b',
-      bgColor: 'rgba(245,158,11,0.12)',
+      color: '#888888', // mid grey
+      bgColor: 'rgba(255,255,255,0.05)',
     },
     invoice_created: {
       icon: <FileText size={16} />,
-      color: '#3b82f6',
-      bgColor: 'rgba(59,130,246,0.12)',
+      color: '#bbbbbb', // light grey
+      bgColor: 'rgba(255,255,255,0.06)',
     },
   };
   const { icon, color, bgColor } = map[type];
@@ -105,6 +105,15 @@ export function TransactionList({ limit = 5 }: { limit?: number }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
+                transition: 'background 0.2s, border-color 0.2s',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = 'var(--bg-card)';
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
               }}
             >
               <TxIcon type={tx.type} />

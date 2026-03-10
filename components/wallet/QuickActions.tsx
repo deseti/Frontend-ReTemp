@@ -57,14 +57,16 @@ export function QuickActions() {
               cursor: 'pointer',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.borderColor = `var(--border-accent)`;
-              (e.currentTarget as HTMLElement).style.background = `rgba(16,185,129,0.05)`;
+              (e.currentTarget as HTMLElement).style.borderColor = `rgba(255,255,255,0.2)`;
+              (e.currentTarget as HTMLElement).style.background = `rgba(255,255,255,0.04)`;
               (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(255,255,255,0.05)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
               (e.currentTarget as HTMLElement).style.background = 'var(--bg-card)';
               (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
             }}
           >
             <div style={{
@@ -76,6 +78,7 @@ export function QuickActions() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.2s',
             }}>
               <action.icon size={18} color="var(--text-secondary)" />
             </div>
@@ -116,9 +119,10 @@ export function QuickActions() {
           }}
           onMouseEnter={e => {
             if (faucetState !== 'loading') {
-              (e.currentTarget as HTMLElement).style.borderColor = `rgba(6,182,212,0.5)`;
-              (e.currentTarget as HTMLElement).style.background = `rgba(6,182,212,0.08)`;
+              (e.currentTarget as HTMLElement).style.borderColor = `rgba(255,255,255,0.25)`;
+              (e.currentTarget as HTMLElement).style.background = `rgba(255,255,255,0.06)`;
               (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(255,255,255,0.06)';
             }
           }}
           onMouseLeave={e => {
@@ -128,6 +132,7 @@ export function QuickActions() {
                 faucetState === 'error'   ? 'rgba(244,63,94,0.4)'  : 'var(--border)';
               (e.currentTarget as HTMLElement).style.background = 'var(--bg-card)';
               (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
             }
           }}
         >
@@ -138,24 +143,25 @@ export function QuickActions() {
             background:
               faucetState === 'success' ? 'rgba(16,185,129,0.15)' :
               faucetState === 'error'   ? 'rgba(244,63,94,0.15)'  :
-              'rgba(6,182,212,0.12)',
+              'rgba(255,255,255,0.08)',
             border: `1.5px solid ${
               faucetState === 'success' ? 'rgba(16,185,129,0.35)' :
               faucetState === 'error'   ? 'rgba(244,63,94,0.35)'  :
-              'rgba(6,182,212,0.3)'
+              'rgba(255,255,255,0.2)'
             }`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            transition: 'all 0.2s',
           }}>
             {faucetState === 'loading' ? (
-              <Loader2 size={18} color="#06b6d4" style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={18} color="#ffffff" style={{ animation: 'spin 1s linear infinite' }} />
             ) : faucetState === 'success' ? (
               <CheckCircle2 size={18} color="#10b981" />
             ) : faucetState === 'error' ? (
               <AlertCircle size={18} color="#f43f5e" />
             ) : (
-              <Droplets size={18} color="#06b6d4" />
+              <Droplets size={18} color="#ffffff" />
             )}
           </div>
           <span style={{
@@ -164,7 +170,7 @@ export function QuickActions() {
             color:
               faucetState === 'success' ? '#10b981' :
               faucetState === 'error'   ? '#f43f5e' :
-              faucetState === 'loading' ? '#06b6d4' :
+              faucetState === 'loading' ? '#ffffff' :
               'var(--text-secondary)',
             letterSpacing: '0.01em',
             whiteSpace: 'nowrap',
