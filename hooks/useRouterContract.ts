@@ -1,39 +1,44 @@
 'use client';
 
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useWallets } from '@privy-io/react-auth';
-import { parseUnits } from 'viem';
+import { parseUnits, parseGwei } from 'viem';
 import { ROUTER_ABI } from '@/lib/contracts';
 import { ROUTER_ADDRESS, ERC20_ABI } from '@/lib/config';
 
 // ─── routeSwap ────────────────────────────────────────────────────────────────
 export function useRouteSwap() {
-  const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
+  const { data: hash, writeContractAsync, isPending, error, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   async function routeSwap(
-    tokenIn:  `0x${string}`,
-    tokenOut: `0x${string}`,
-    amountIn: string,
-    decimals: number = 18
+    tokenIn:      `0x${string}`,
+    tokenOut:     `0x${string}`,
+    amountIn:     string,
+    decimals:     number = 6,
+    slippageBps:  bigint = BigInt(50)  // default 0.5%
   ) {
     const amount = parseUnits(amountIn, decimals);
+    const minAmountOut = (amount * (BigInt(10000) - slippageBps)) / BigInt(10000);
 
     // Step 1: approve router to spend tokenIn
-    await writeContract({
+    await writeContractAsync({
       address: tokenIn,
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ROUTER_ADDRESS, amount],
+      gasPrice: parseGwei('25'),
     });
 
-    // Step 2: call routeSwap
-    writeContract({
+    // Step 2: call routeSwap with minAmountOut slippage protection
+    const txHash = await writeContractAsync({
       address: ROUTER_ADDRESS,
       abi: ROUTER_ABI,
       functionName: 'routeSwap',
-      args: [tokenIn, tokenOut, amount],
+      args: [tokenIn, tokenOut, amount, minAmountOut],
+      gasPrice: parseGwei('25'),
     });
+
+    return txHash;
   }
 
   return { routeSwap, hash, isPending, isConfirming, isSuccess, error, reset };
@@ -41,7 +46,7 @@ export function useRouteSwap() {
 
 // ─── payInvoice ───────────────────────────────────────────────────────────────
 export function usePayInvoice() {
-  const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
+  const { data: hash, writeContractAsync, isPending, error, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   async function payInvoice(
@@ -49,21 +54,25 @@ export function usePayInvoice() {
     paymentTokenAddress: `0x${string}`,
     approvalAmount: bigint
   ) {
-    // Approve first
-    await writeContract({
+    // Step 1: approve
+    await writeContractAsync({
       address: paymentTokenAddress,
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ROUTER_ADDRESS, approvalAmount],
+      gasPrice: parseGwei('25'),
     });
 
-    // Then pay
-    writeContract({
+    // Step 2: pay (await fixed — was missing before)
+    const txHash = await writeContractAsync({
       address: ROUTER_ADDRESS,
       abi: ROUTER_ABI,
       functionName: 'payInvoice',
       args: [invoiceId, paymentTokenAddress],
+      gasPrice: parseGwei('25'),
     });
+
+    return txHash;
   }
 
   return { payInvoice, hash, isPending, isConfirming, isSuccess, error, reset };
@@ -71,17 +80,19 @@ export function usePayInvoice() {
 
 // ─── createInvoice ────────────────────────────────────────────────────────────
 export function useCreateInvoice() {
-  const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
+  const { data: hash, writeContractAsync, isPending, error, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  function createInvoice(tokenAddress: `0x${string}`, amount: string, decimals = 18) {
+  async function createInvoice(tokenAddress: `0x${string}`, amount: string, decimals = 6) {
     const amountBn = parseUnits(amount, decimals);
-    writeContract({
+    const txHash = await writeContractAsync({
       address: ROUTER_ADDRESS,
       abi: ROUTER_ABI,
       functionName: 'createInvoice',
       args: [tokenAddress, amountBn],
+      gasPrice: parseGwei('25'),
     });
+    return txHash;
   }
 
   return { createInvoice, hash, isPending, isConfirming, isSuccess, error, reset };

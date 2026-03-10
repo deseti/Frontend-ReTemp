@@ -4,20 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseUnits } from 'viem';
+import { parseUnits, parseGwei } from 'viem';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { TokenIcon } from '@/components/ui/TokenIcon';
 import { useTokenBalances } from '@/hooks/useTokenBalances';
-import { SUPPORTED_TOKENS, ERC20_ABI, ROUTER_ADDRESS } from '@/lib/config';
-import { ROUTER_ABI } from '@/lib/contracts';
+import { SUPPORTED_TOKENS, tempoChain } from '@/lib/config';
 import { ArrowLeft, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SendPage() {
   const { ready, authenticated } = usePrivy();
   const router = useRouter();
-  const { balances } = useTokenBalances();
+  const { balances, refetch: balancesRefetch } = useTokenBalances();
 
   const [recipient, setRecipient] = useState('');
   const [selectedToken, setSelectedToken] = useState(SUPPORTED_TOKENS[0].address);
@@ -42,22 +41,26 @@ export default function SendPage() {
     try {
       const amountBn = parseUnits(amount, token.decimals);
 
-      // 1. Approve router
-      setStep('approving');
-      await writeContractAsync({
-        address: token.address,
-        abi: ERC20_ABI,
-        functionName: 'approve',
-        args: [ROUTER_ADDRESS, amountBn],
-      });
-
-      // 2. Route swap / direct transfer via router – using routeSwap with same in/out for direct
+      // Direct ERC-20 Transfer to the recipient
       setStep('sending');
       const hash = await writeContractAsync({
-        address: ROUTER_ADDRESS,
-        abi: ROUTER_ABI,
-        functionName: 'routeSwap',
-        args: [token.address, token.address, amountBn],
+        address: token.address,
+        abi: [
+          {
+            name: 'transfer',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [
+              { name: 'to', type: 'address' },
+              { name: 'amount', type: 'uint256' },
+            ],
+            outputs: [{ name: '', type: 'bool' }],
+          },
+        ],
+        functionName: 'transfer',
+        args: [recipient as `0x${string}`, amountBn],
+        chainId: tempoChain.id,
+        gasPrice: parseGwei('25'), // Paksa pakai legacy gasPrice minimum 25 Gwei untuk Tempo
       });
       setTxHash(hash);
       setStep('success');
@@ -67,6 +70,13 @@ export default function SendPage() {
       setStep('error');
     }
   }
+
+  // Refetch balances when transaction is confirmed
+  useEffect(() => {
+    if (step === 'success' && !isConfirming) {
+      balancesRefetch();
+    }
+  }, [step, isConfirming, balancesRefetch]);
 
   return (
     <div className="app-shell">
@@ -172,18 +182,9 @@ export default function SendPage() {
               )}
             </div>
 
-            {/* Routing info */}
-            <div style={{
-              background: 'rgba(16,185,129,0.06)',
-              border: '1px solid var(--border-accent)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 14px',
-              marginBottom: 20,
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
-            }}>
-              ⚡ Tempo Router automatically routes your payment. If a direct pool doesn't exist, it swaps via AlphaUSD hub.
-            </div>
+            {/* Routing info 
+                This block is now hidden for simple send because we only do peer to peer transfer 
+            */}
 
             {step === 'error' && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16, color: 'var(--red)', fontSize: '0.8rem' }}>
@@ -196,12 +197,10 @@ export default function SendPage() {
               id="send-btn"
               className="btn btn-primary"
               onClick={handleSend}
-              disabled={!recipient || !amount || step === 'approving' || step === 'sending' || isConfirming}
+              disabled={!recipient || !amount || step === 'sending' || isConfirming}
               style={{ width: '100%' }}
             >
-              {step === 'approving' ? (
-                <><div className="spinner" />Approving…</>
-              ) : step === 'sending' || isConfirming ? (
+              {step === 'sending' || isConfirming ? (
                 <><div className="spinner" />Sending…</>
               ) : (
                 <><Send size={16} />Send Payment</>

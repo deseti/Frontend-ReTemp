@@ -124,6 +124,16 @@ export function TransactionList({ limit = 5 }: { limit?: number }) {
                     Paid with {tx.tokenSymbol}
                   </div>
                 )}
+                {tx.type === 'send' && tx.to && (
+                  <div style={{ fontSize: '0.77rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+                    To {tx.to.slice(0, 6)}…{tx.to.slice(-4)}
+                  </div>
+                )}
+                {tx.type === 'receive' && tx.from && (
+                  <div style={{ fontSize: '0.77rem', color: 'var(--text-secondary)', marginTop: 2 }}>
+                    From {tx.from.slice(0, 6)}…{tx.from.slice(-4)}
+                  </div>
+                )}
               </div>
 
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -132,7 +142,17 @@ export function TransactionList({ limit = 5 }: { limit?: number }) {
                     +{tx.amountOut} {tx.tokenOut}
                   </div>
                 )}
+                {tx.type === 'receive' && tx.amount && tx.tokenSymbol && (
+                  <div className="amount-positive" style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                    +{tx.amount} {tx.tokenSymbol}
+                  </div>
+                )}
                 {tx.type === 'invoice_paid' && tx.amount && tx.tokenSymbol && (
+                  <div className="amount-negative" style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                    -{tx.amount} {tx.tokenSymbol}
+                  </div>
+                )}
+                {tx.type === 'send' && tx.amount && tx.tokenSymbol && (
                   <div className="amount-negative" style={{ fontWeight: 700, fontSize: '0.88rem' }}>
                     -{tx.amount} {tx.tokenSymbol}
                   </div>

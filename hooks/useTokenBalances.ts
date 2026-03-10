@@ -3,7 +3,7 @@
 import { useReadContracts } from 'wagmi';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { formatUnits } from 'viem';
-import { SUPPORTED_TOKENS, ERC20_ABI } from '@/lib/config';
+import { SUPPORTED_TOKENS, ERC20_ABI, tempoChain } from '@/lib/config';
 
 export interface TokenBalance {
   symbol: string;
@@ -27,6 +27,7 @@ export function useTokenBalances() {
   const contracts = SUPPORTED_TOKENS.map(token => ({
     address: token.address,
     abi: ERC20_ABI,
+    chainId: tempoChain.id,          // ← FIX: pastikan baca dari Tempo chain
     functionName: 'balanceOf' as const,
     args: [address ?? '0x0000000000000000000000000000000000000000'] as [`0x${string}`],
   }));
@@ -35,7 +36,10 @@ export function useTokenBalances() {
     contracts,
     query: {
       enabled: authenticated && !!address,
-      refetchInterval: 15_000, // refresh every 15s
+      refetchInterval: 8_000,        // ← FIX: lebih cepat dari 15s → 8s
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,    // ← FIX: refresh saat window kembali aktif
+      staleTime: 4_000,
     },
   });
 
@@ -45,7 +49,12 @@ export function useTokenBalances() {
     return {
       ...token,
       balanceRaw: raw,
-      balance: raw > BigInt(0) ? parseFloat(formatUnits(raw, token.decimals)).toFixed(4) : '0.0000',
+      balance: raw > BigInt(0)
+        ? parseFloat(formatUnits(raw, token.decimals)).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          })
+        : '0.00',
       isLoading,
     };
   });

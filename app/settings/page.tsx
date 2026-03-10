@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { AddressDisplay } from '@/components/ui/AddressDisplay';
 import {
-  ArrowLeft, Copy, Key, Shield, LogOut, ChevronRight, Download,
+  ArrowLeft, Copy, Key, Shield, LogOut, ChevronRight,
+  CheckCircle2, Fingerprint, ExternalLink, Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -17,26 +17,30 @@ interface SettingRowProps {
   description?: string;
   onClick: () => void;
   danger?: boolean;
+  badge?: string;
+  disabled?: boolean;
 }
 
-function SettingRow({ icon, label, description, onClick, danger }: SettingRowProps) {
+function SettingRow({ icon, label, description, onClick, danger, badge, disabled }: SettingRowProps) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 14,
-        padding: '14px 16px',
+        padding: '15px 16px',
         background: 'transparent',
         border: 'none',
         borderBottom: '1px solid var(--border)',
         width: '100%',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         textAlign: 'left',
         transition: 'background 0.15s',
+        opacity: disabled ? 0.5 : 1,
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
+      onMouseEnter={e => { if (!disabled) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
     >
       <div style={{
@@ -50,8 +54,18 @@ function SettingRow({ icon, label, description, onClick, danger }: SettingRowPro
         {icon}
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: danger ? 'var(--red)' : 'var(--text-primary)' }}>
+        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: danger ? 'var(--red)' : 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
           {label}
+          {badge && (
+            <span style={{
+              fontSize: '0.62rem', fontWeight: 700, padding: '2px 7px',
+              background: 'rgba(16,185,129,0.15)', color: 'var(--accent)',
+              border: '1px solid rgba(16,185,129,0.3)', borderRadius: 99,
+              letterSpacing: '0.04em', textTransform: 'uppercase',
+            }}>
+              {badge}
+            </span>
+          )}
         </div>
         {description && (
           <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 2 }}>
@@ -65,24 +79,43 @@ function SettingRow({ icon, label, description, onClick, danger }: SettingRowPro
 }
 
 export default function SettingsPage() {
-  const { ready, authenticated, logout, exportWallet } = usePrivy();
+  const { ready, authenticated, logout, exportWallet, user } = usePrivy();
   const { wallets } = useWallets();
   const router = useRouter();
 
+  const [copied, setCopied] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+
   const embeddedWallet = wallets.find(w => w.walletClientType === 'privy');
   const address = embeddedWallet?.address ?? '';
+
+  // Check if user has a passkey linked
+  const hasPasskey = user?.linkedAccounts?.some(a => a.type === 'passkey');
+  const loginEmail = user?.linkedAccounts?.find(a => a.type === 'email')?.address
+    ?? user?.linkedAccounts?.find(a => a.type === 'google_oauth')?.email
+    ?? '';
 
   useEffect(() => {
     if (ready && !authenticated) router.replace('/');
   }, [ready, authenticated, router]);
 
   async function handleCopyAddress() {
-    if (address) await navigator.clipboard.writeText(address);
+    if (address) {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   }
 
   async function handleExportKey() {
-    if (exportWallet) {
+    if (!exportWallet) return;
+    setExportLoading(true);
+    try {
       await exportWallet();
+    } catch (e) {
+      console.error('[exportWallet]', e);
+    } finally {
+      setExportLoading(false);
     }
   }
 
@@ -99,88 +132,180 @@ export default function SettingsPage() {
           <Link href="/dashboard" style={{ color: 'var(--text-muted)', display: 'flex' }}>
             <ArrowLeft size={22} />
           </Link>
-          <h1 className="page-title">Settings</h1>
+          <h1 className="page-title">Account</h1>
         </div>
 
-        {/* Wallet address section */}
+        {/* ── Wallet identity card ──────────────────────────────── */}
         <div className="card animate-fade-in-up" style={{ padding: '20px', marginBottom: 16 }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 10, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            My Wallet
-          </div>
-          {address && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: 1.6 }}>
-                {address}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 16,
+              background: 'linear-gradient(135deg, var(--accent) 0%, #0d9488 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Wallet size={22} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                Embedded Wallet
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <AddressDisplay address={address} />
+              {loginEmail && (
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                  {loginEmail}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Address display */}
+          <div style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px 14px',
+          }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Wallet Address
+            </div>
+            <div style={{ fontFamily: 'monospace', fontSize: '0.76rem', color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: 1.6 }}>
+              {address || '—'}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button
+                onClick={handleCopyAddress}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '6px 12px', borderRadius: 8,
+                  background: copied ? 'rgba(16,185,129,0.15)' : 'var(--bg-base)',
+                  border: `1px solid ${copied ? 'rgba(16,185,129,0.4)' : 'var(--border)'}`,
+                  color: copied ? 'var(--accent)' : 'var(--text-secondary)',
+                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {copied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              {address && (
+                <a
+                  href={`https://explore.tempo.xyz/address/${address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '6px 12px', borderRadius: 8,
+                    background: 'var(--bg-base)', border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  <ExternalLink size={13} />
+                  Explorer
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Security & auth ──────────────────────────────────── */}
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', margin: '16px 4px 8px' }}>
+          Security
+        </div>
+        <div className="card animate-fade-in-up" style={{ overflow: 'hidden', padding: 0, marginBottom: 16 }}>
+
+          {/* Passkey status */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '15px 16px',
+            borderBottom: '1px solid var(--border)',
+          }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 11,
+              background: hasPasskey ? 'rgba(16,185,129,0.12)' : 'var(--bg-elevated)',
+              border: `1.5px solid ${hasPasskey ? 'rgba(16,185,129,0.3)' : 'var(--border)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: hasPasskey ? 'var(--accent)' : 'var(--text-secondary)',
+              flexShrink: 0,
+            }}>
+              <Fingerprint size={17} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                Passkey / Biometric
+                <span style={{
+                  fontSize: '0.62rem', fontWeight: 700, padding: '2px 7px',
+                  background: hasPasskey ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+                  color: hasPasskey ? 'var(--accent)' : '#f59e0b',
+                  border: `1px solid ${hasPasskey ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                  borderRadius: 99, letterSpacing: '0.04em', textTransform: 'uppercase',
+                }}>
+                  {hasPasskey ? 'Active' : 'Not set'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                {hasPasskey
+                  ? 'Transactions confirmed with fingerprint/Face ID'
+                  : 'Konfirmasi transaksi pakai sidik jari — set via Privy popup'}
               </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Settings options */}
-        <div className="card animate-fade-in-up" style={{ overflow: 'hidden', padding: 0 }}>
-          <SettingRow
-            icon={<Copy size={16} />}
-            label="Copy Address"
-            description="Copy wallet address to clipboard"
-            onClick={handleCopyAddress}
-          />
           <SettingRow
             icon={<Key size={16} />}
             label="Export Private Key"
-            description="Securely export via Privy"
+            description={exportLoading ? 'Opening secure modal…' : 'Privy opens a secure, isolated modal — only you see the key'}
+            badge="Secure"
             onClick={handleExportKey}
+            disabled={!embeddedWallet || exportLoading}
           />
-          <SettingRow
-            icon={<Download size={16} />}
-            label="Backup Wallet"
-            description="Save your recovery phrase"
-            onClick={handleExportKey}
-          />
+
           <SettingRow
             icon={<Shield size={16} />}
-            label="Security Settings"
-            description="Passkey and 2FA options"
-            onClick={() => {}}
+            label="Manage Linked Accounts"
+            description="Email, Google, passkey — add or remove login methods"
+            onClick={() => {
+              // Privy's built-in account linking is triggered via their UI
+              // Link to Privy dashboard or guide user
+              window.open('https://privy.io', '_blank');
+            }}
           />
+        </div>
+
+        {/* ── Network info ─────────────────────────────────────── */}
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', margin: '0 4px 8px' }}>
+          Network
+        </div>
+        <div className="card animate-fade-in-up" style={{ padding: '14px 16px', marginBottom: 16 }}>
+          {[
+            { label: 'Network',    value: 'Tempo Moderato Testnet',           mono: false },
+            { label: 'Chain ID',   value: '42431',                            mono: true  },
+            { label: 'RPC',        value: 'rpc.moderato.tempo.xyz',          mono: true  },
+            { label: 'Router Fee', value: '0.20%',                           mono: false },
+            { label: 'Pool Fee',   value: '0.30%',                           mono: false },
+          ].map(row => (
+            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{row.label}</span>
+              <span style={{ fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 600, fontFamily: row.mono ? 'monospace' : 'inherit' }}>
+                {row.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Sign out ─────────────────────────────────────────── */}
+        <div className="card animate-fade-in-up" style={{ overflow: 'hidden', padding: 0, marginBottom: 16 }}>
           <SettingRow
             icon={<LogOut size={16} />}
             label="Sign Out"
-            description="Log out of your wallet"
+            description="Log out of your wallet session"
             onClick={handleLogout}
             danger
           />
         </div>
 
-        {/* Network info */}
-        <div className="card animate-fade-in-up" style={{ padding: '16px', marginTop: 16 }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 10, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-            Network
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.82rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Network</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Tempo Blockchain</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Chain ID</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>42431</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Router Fee</span>
-              <span style={{ color: 'var(--accent)', fontWeight: 600 }}>0.20%</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Pool Fee</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>0.30%</span>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: 20, paddingBottom: 16 }}>
-          ReTemp Wallet · Powered by Tempo Protocol
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: 8, paddingBottom: 16 }}>
+          ReTemp Wallet · Tempo Blockchain
         </div>
       </main>
       <BottomNav />

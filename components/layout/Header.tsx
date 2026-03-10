@@ -2,7 +2,8 @@
 
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { AddressDisplay } from '@/components/ui/AddressDisplay';
-import { Zap } from 'lucide-react';
+import { Zap, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 export function Header() {
   const { authenticated } = usePrivy();
@@ -57,11 +58,28 @@ export function Header() {
         </div>
       </div>
 
-      {/* Network badge + address */}
+      {/* Network badge + address + settings */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-        <div className="badge badge-green" style={{ fontSize: '0.65rem' }}>
-          <div className="status-dot" style={{ width: 6, height: 6 }} />
-          Tempo Blockchain • Tesnet        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="badge badge-green" style={{ fontSize: '0.65rem' }}>
+            <div className="status-dot" style={{ width: 6, height: 6 }} />
+            Tempo • Testnet
+          </div>
+          <Link
+            href="/settings"
+            style={{
+              width: 30, height: 30, borderRadius: 9,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', textDecoration: 'none',
+              transition: 'all 0.2s',
+            }}
+            title="Account Settings"
+          >
+            <Settings size={14} />
+          </Link>
+        </div>
         {authenticated && address && (
           <AddressDisplay address={address} />
         )}

@@ -5,7 +5,7 @@ export const wagmiConfig = createConfig({
   chains: [tempoChain],
   transports: {
     [tempoChain.id]: http(
-      process.env.NEXT_PUBLIC_TEMPO_RPC_URL ?? 'https://rpc.tempo.network'
+      process.env.NEXT_PUBLIC_TEMPO_RPC_URL ?? 'https://rpc.moderato.tempo.xyz/'
     ),
   },
   ssr: true,

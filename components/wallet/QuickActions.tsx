@@ -3,45 +3,18 @@
 import Link from 'next/link';
 import { Send, QrCode, ArrowLeftRight, History, Droplets, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useWallets } from '@privy-io/react-auth';
-import { useState } from 'react';
+import { useFaucet } from '@/hooks/useFaucet';
 
 export function QuickActions() {
   const { wallets } = useWallets();
-  const address = wallets.find(w => w.walletClientType === 'privy')?.address;
-  
-  const [faucetState, setFaucetState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [faucetMsg, setFaucetMsg] = useState('');
+  const address = wallets.find(w => w.walletClientType === 'privy')?.address as `0x${string}` | undefined;
+
+  const { requestTokens, status: faucetState, error: faucetErr, reset: resetFaucet } = useFaucet();
 
   const handleFaucet = async () => {
     if (!address || faucetState === 'loading') return;
-    
-    setFaucetState('loading');
-    setFaucetMsg('Requesting...');
-    
-    try {
-      const res = await fetch('https://docs.tempo.xyz/api/faucet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address })
-      });
-      
-      if (res.ok) {
-        setFaucetState('success');
-        setFaucetMsg('Funded 1M Tokens!');
-      } else {
-        setFaucetState('error');
-        setFaucetMsg('Faucet Failed');
-      }
-    } catch (e) {
-      setFaucetState('error');
-      setFaucetMsg('Network Error');
-    } finally {
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setFaucetState('idle');
-        setFaucetMsg('');
-      }, 3000);
-    }
+    await requestTokens(address);
+    setTimeout(resetFaucet, 4000);
   };
 
   const ACTIONS = [
@@ -50,6 +23,14 @@ export function QuickActions() {
     { label: 'Swap',    href: '/swap',    icon: ArrowLeftRight },
     { label: 'History', href: '/history', icon: History },
   ];
+
+
+  const faucetLabel =
+    faucetState === 'idle'    ? 'Faucet'         :
+    faucetState === 'loading' ? 'Requesting…'    :
+    faucetState === 'success' ? 'Funded! 1M'     :
+    faucetErr                 ? faucetErr.slice(0, 14) + '…'
+                              : 'Error';
 
   return (
     <div className="animate-fade-in-up" style={{ margin: '8px 0 20px' }}>
@@ -109,10 +90,12 @@ export function QuickActions() {
           </Link>
         ))}
 
-        {/* Faucet Button (Action) */}
+        {/* ── Faucet Button ───────────────────────────────────── */}
         <button
+          id="faucet-btn"
           onClick={handleFaucet}
-          disabled={faucetState === 'loading'}
+          disabled={faucetState === 'loading' || !address}
+          title={faucetErr || 'Request 1M test tokens (each) to your wallet'}
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -120,23 +103,29 @@ export function QuickActions() {
             gap: 8,
             padding: '14px 4px',
             background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
+            border: `1px solid ${
+              faucetState === 'success' ? 'rgba(16,185,129,0.4)' :
+              faucetState === 'error'   ? 'rgba(244,63,94,0.4)' :
+              'var(--border)'
+            }`,
             borderRadius: 'var(--radius-lg)',
             transition: 'all 0.2s',
             cursor: faucetState === 'loading' ? 'wait' : 'pointer',
-            opacity: faucetState === 'loading' ? 0.7 : 1,
+            opacity: (!address || faucetState === 'loading') ? 0.65 : 1,
             outline: 'none',
           }}
           onMouseEnter={e => {
             if (faucetState !== 'loading') {
-              (e.currentTarget as HTMLElement).style.borderColor = `rgba(6, 182, 212, 0.5)`;
-              (e.currentTarget as HTMLElement).style.background = `rgba(6, 182, 212, 0.1)`;
+              (e.currentTarget as HTMLElement).style.borderColor = `rgba(6,182,212,0.5)`;
+              (e.currentTarget as HTMLElement).style.background = `rgba(6,182,212,0.08)`;
               (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={e => {
             if (faucetState !== 'loading') {
-              (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+              (e.currentTarget as HTMLElement).style.borderColor =
+                faucetState === 'success' ? 'rgba(16,185,129,0.4)' :
+                faucetState === 'error'   ? 'rgba(244,63,94,0.4)'  : 'var(--border)';
               (e.currentTarget as HTMLElement).style.background = 'var(--bg-card)';
               (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
             }
@@ -146,14 +135,21 @@ export function QuickActions() {
             width: 40,
             height: 40,
             borderRadius: 14,
-            background: faucetState === 'success' ? 'rgba(16, 185, 129, 0.15)' : faucetState === 'error' ? 'rgba(244, 63, 94, 0.15)' : `rgba(6, 182, 212, 0.15)`,
-            border: `1.5px solid ${faucetState === 'success' ? 'rgba(16, 185, 129, 0.3)' : faucetState === 'error' ? 'rgba(244, 63, 94, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
+            background:
+              faucetState === 'success' ? 'rgba(16,185,129,0.15)' :
+              faucetState === 'error'   ? 'rgba(244,63,94,0.15)'  :
+              'rgba(6,182,212,0.12)',
+            border: `1.5px solid ${
+              faucetState === 'success' ? 'rgba(16,185,129,0.35)' :
+              faucetState === 'error'   ? 'rgba(244,63,94,0.35)'  :
+              'rgba(6,182,212,0.3)'
+            }`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
             {faucetState === 'loading' ? (
-              <Loader2 size={18} color="#06b6d4" className="animate-spin" />
+              <Loader2 size={18} color="#06b6d4" style={{ animation: 'spin 1s linear infinite' }} />
             ) : faucetState === 'success' ? (
               <CheckCircle2 size={18} color="#10b981" />
             ) : faucetState === 'error' ? (
@@ -165,11 +161,18 @@ export function QuickActions() {
           <span style={{
             fontSize: '0.68rem',
             fontWeight: 600,
-            color: faucetState === 'success' ? '#10b981' : faucetState === 'error' ? '#f43f5e' : 'var(--text-secondary)',
+            color:
+              faucetState === 'success' ? '#10b981' :
+              faucetState === 'error'   ? '#f43f5e' :
+              faucetState === 'loading' ? '#06b6d4' :
+              'var(--text-secondary)',
             letterSpacing: '0.01em',
             whiteSpace: 'nowrap',
+            maxWidth: 58,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>
-            {faucetState === 'idle' ? 'Faucet' : faucetMsg}
+            {faucetLabel}
           </span>
         </button>
       </div>

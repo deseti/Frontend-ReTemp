@@ -89,29 +89,111 @@ export function useTransactions() {
         toBlock: latestBlock,
       }).catch(() => []);
 
-      const swapTxs: Transaction[] = swapLogs.map(log => ({
-        id: `swap-${log.transactionHash}-${log.logIndex}`,
-        type: 'swap',
-        txHash: log.transactionHash!,
-        blockNumber: log.blockNumber ?? BigInt(0),
-        tokenIn:   getTokenSymbol((log.args as Record<string,string>).tokenIn  ?? ''),
-        tokenOut:  getTokenSymbol((log.args as Record<string,string>).tokenOut ?? ''),
-        amountIn:  parseFloat(formatUnits((log.args as Record<string,bigint>).amountIn  ?? BigInt(0), 18)).toFixed(4),
-        amountOut: parseFloat(formatUnits((log.args as Record<string,bigint>).amountOut ?? BigInt(0), 18)).toFixed(4),
-      }));
+      // Fetch ERC-20 Transfer events (Outgoing / Send)
+      const tokenAddresses = SUPPORTED_TOKENS.map(t => t.address);
+      const transferEventAbi = {
+        name: 'Transfer',
+        type: 'event',
+        inputs: [
+          { name: 'from', type: 'address', indexed: true },
+          { name: 'to', type: 'address', indexed: true },
+          { name: 'value', type: 'uint256', indexed: false },
+        ],
+      } as const;
 
-      const paidTxs: Transaction[] = paidLogs.map(log => ({
-        id: `paid-${log.transactionHash}-${log.logIndex}`,
-        type: 'invoice_paid',
-        txHash: log.transactionHash!,
-        blockNumber: log.blockNumber ?? BigInt(0),
-        tokenSymbol: getTokenSymbol((log.args as Record<string,string>).paymentToken ?? ''),
-        amount: parseFloat(formatUnits((log.args as Record<string,bigint>).amountPaid ?? BigInt(0), 18)).toFixed(4),
-      }));
+      const sendLogs = await publicClient.getLogs({
+        address: tokenAddresses,
+        event: transferEventAbi,
+        args: { from: address },
+        fromBlock,
+        toBlock: latestBlock,
+      }).catch(() => []);
 
-      const all = [...swapTxs, ...paidTxs].sort(
+      // Fetch ERC-20 Transfer events (Incoming / Receive)
+      const receiveLogs = await publicClient.getLogs({
+        address: tokenAddresses,
+        event: transferEventAbi,
+        args: { to: address },
+        fromBlock,
+        toBlock: latestBlock,
+      }).catch(() => []);
+
+      const swapTxs: Transaction[] = swapLogs.map(log => {
+        const args = log.args as any;
+        const tInAddr = args.tokenIn?.toLowerCase() ?? '';
+        const tOutAddr = args.tokenOut?.toLowerCase() ?? '';
+        const tokenInDecimals = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tInAddr)?.decimals ?? 6;
+        const tokenOutDecimals = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tOutAddr)?.decimals ?? 6;
+        return {
+          id: `swap-${log.transactionHash}-${log.logIndex}`,
+          type: 'swap',
+          txHash: log.transactionHash!,
+          blockNumber: log.blockNumber ?? BigInt(0),
+          tokenIn:   getTokenSymbol(tInAddr),
+          tokenOut:  getTokenSymbol(tOutAddr),
+          amountIn:  parseFloat(formatUnits(args.amountIn  ?? BigInt(0), tokenInDecimals)).toFixed(4),
+          amountOut: parseFloat(formatUnits(args.amountOut ?? BigInt(0), tokenOutDecimals)).toFixed(4),
+        };
+      });
+
+      const paidTxs: Transaction[] = paidLogs.map(log => {
+        const args = log.args as any;
+        const tAddr = args.paymentToken?.toLowerCase() ?? '';
+        const tDecimals = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tAddr)?.decimals ?? 6;
+        return {
+          id: `paid-${log.transactionHash}-${log.logIndex}`,
+          type: 'invoice_paid',
+          txHash: log.transactionHash!,
+          blockNumber: log.blockNumber ?? BigInt(0),
+          tokenSymbol: getTokenSymbol(tAddr),
+          amount: parseFloat(formatUnits(args.amountPaid ?? BigInt(0), tDecimals)).toFixed(4),
+        };
+      });
+
+      const sendTxs: Transaction[] = sendLogs.map(log => {
+        const tAddress = log.address.toLowerCase();
+        const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tAddress);
+        const args = log.args as any;
+        return {
+          id: `send-${log.transactionHash}-${log.logIndex}`,
+          type: 'send',
+          txHash: log.transactionHash!,
+          blockNumber: log.blockNumber ?? BigInt(0),
+          tokenSymbol: token?.symbol ?? getTokenSymbol(tAddress),
+          to: args?.to,
+          amount: parseFloat(formatUnits(args?.value ?? BigInt(0), token?.decimals ?? 6)).toFixed(4),
+        };
+      });
+
+      const receiveTxs: Transaction[] = receiveLogs.map(log => {
+        const tAddress = log.address.toLowerCase();
+        const token = SUPPORTED_TOKENS.find(t => t.address.toLowerCase() === tAddress);
+        const args = log.args as any;
+        return {
+          id: `receive-${log.transactionHash}-${log.logIndex}`,
+          type: 'receive',
+          txHash: log.transactionHash!,
+          blockNumber: log.blockNumber ?? BigInt(0),
+          tokenSymbol: token?.symbol ?? getTokenSymbol(tAddress),
+          from: args?.from,
+          amount: parseFloat(formatUnits(args?.value ?? BigInt(0), token?.decimals ?? 6)).toFixed(4),
+        };
+      });
+
+      // Filter out receive txs that are also swap or router operations to avoid duplicates
+      // Router usually calls transfer internally, but we might pick it up.
+      // If the sender is the router or caller is router, maybe ignore. 
+      // A simple heuristic: if from/to is ROUTER_ADDRESS, filter out.
+      const isRouter = (addr?: string) => addr?.toLowerCase() === ROUTER_ADDRESS.toLowerCase();
+      const filteredSend = sendTxs.filter(tx => !isRouter(tx.to));
+      const filteredReceive = receiveTxs.filter(tx => !isRouter(tx.from));
+
+      const all = [...swapTxs, ...paidTxs, ...filteredSend, ...filteredReceive].sort(
         (a, b) => Number(b.blockNumber) - Number(a.blockNumber)
       );
+      
+      // Deduplicate by txHash just in case there are multiple transfers in one tx we don't want flooding, or keep them if detailed.
+      // Let's keep them and rely on ID uniqueness.
       setTransactions(all);
     } catch (err) {
       console.error('[useTransactions]', err);

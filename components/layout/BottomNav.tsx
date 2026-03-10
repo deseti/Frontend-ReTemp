@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Send, QrCode, ArrowLeftRight, History } from 'lucide-react';
+import { LayoutDashboard, Send, QrCode, ArrowLeftRight, Settings } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/send',      label: 'Send',      icon: Send },
-  { href: '/receive',   label: 'Receive',   icon: QrCode },
-  { href: '/swap',      label: 'Swap',      icon: ArrowLeftRight },
-  { href: '/history',   label: 'History',   icon: History },
+  { href: '/dashboard', label: 'Home',     icon: LayoutDashboard },
+  { href: '/send',      label: 'Send',     icon: Send },
+  { href: '/receive',   label: 'Receive',  icon: QrCode },
+  { href: '/swap',      label: 'Swap',     icon: ArrowLeftRight },
+  { href: '/settings',  label: 'Account',  icon: Settings },
 ];
 
 export function BottomNav() {

@@ -27,7 +27,7 @@ export const tempoChain = defineChain({
 // UPDATE THESE after deploying the contracts
 
 export const ROUTER_ADDRESS = (
-  process.env.NEXT_PUBLIC_ROUTER_ADDRESS ?? '0x0000000000000000000000000000000000000000'
+  process.env.NEXT_PUBLIC_ROUTER_ADDRESS ?? '0x148ACa4DF102E7E4F94C8eFDF3A1710E41AFc093'
 ) as `0x${string}`;
 
 export const TREASURY_ADDRESS = (
@@ -55,7 +55,7 @@ export const SUPPORTED_TOKENS: Token[] = [
     symbol: 'αUSD',
     name: 'AlphaUSD',
     address: '0x20c0000000000000000000000000000000000001',
-    decimals: 18,
+    decimals: 6,
     color: '#10b981',
     isHub: true,
   },
@@ -63,31 +63,62 @@ export const SUPPORTED_TOKENS: Token[] = [
     symbol: 'βUSD',
     name: 'BetaUSD',
     address: '0x20c0000000000000000000000000000000000002',
-    decimals: 18,
+    decimals: 6,
     color: '#3b82f6',
   },
   {
     symbol: 'θUSD',
     name: 'ThetaUSD',
     address: '0x20c0000000000000000000000000000000000003',
-    decimals: 18,
+    decimals: 6,
     color: '#8b5cf6',
   },
   {
     symbol: 'πUSD',
     name: 'PathUSD',
     address: '0x20c0000000000000000000000000000000000000',
-    decimals: 18,
+    decimals: 6,
     color: '#f59e0b',
   },
 ];
 
-// ─── Pool Addresses (set after deployment) ─────────────────────────────────────
+// ─── Pool Addresses (Tempo Moderato Testnet — deployed 2026-03-09) ──────────────
 // pools[tokenA][tokenB] mirrors the router registry
+// Source: https://github.com/deseti/ReTemp/blob/main/contracts.md
+const ALPHA = '0x20C0000000000000000000000000000000000001' as `0x${string}`;
+const BETA  = '0x20C0000000000000000000000000000000000002' as `0x${string}`;
+const THETA = '0x20C0000000000000000000000000000000000003' as `0x${string}`;
+const PATH  = '0x20C0000000000000000000000000000000000000' as `0x${string}`;
+
 export const POOL_ADDRESSES: Record<string, Record<string, `0x${string}`>> = {
-  // Update after running Deploy.s.sol
-  // e.g. alphaUSD-betaUSD pool address goes here
+  // AlphaUSD ↔ BetaUSD
+  [ALPHA]: {
+    [BETA]:  '0x857F4F2dEF1a6A2C4c417ae2c5bb1A62F1A0950C' as `0x${string}`,
+    [THETA]: '0x86ca17F2fe550E8B245cB23967343bc5C8DCfab9' as `0x${string}`,
+    [PATH]:  '0x23b549AbaE9003ceBD95ac4fFe2BC948E7DcBfEd' as `0x${string}`,
+  },
+  // Reverse direction — same pools
+  [BETA]: {
+    [ALPHA]: '0x857F4F2dEF1a6A2C4c417ae2c5bb1A62F1A0950C' as `0x${string}`,
+  },
+  [THETA]: {
+    [ALPHA]: '0x86ca17F2fe550E8B245cB23967343bc5C8DCfab9' as `0x${string}`,
+  },
+  [PATH]: {
+    [ALPHA]: '0x23b549AbaE9003ceBD95ac4fFe2BC948E7DcBfEd' as `0x${string}`,
+  },
 };
+
+/** Utility: resolve pool address for a token pair (order-independent). */
+export function getPoolAddress(
+  tokenA: `0x${string}`,
+  tokenB: `0x${string}`,
+): `0x${string}` | undefined {
+  return (
+    POOL_ADDRESSES[tokenA]?.[tokenB] ??
+    POOL_ADDRESSES[tokenB]?.[tokenA]
+  );
+}
 
 // ─── ERC-20 minimal ABI ────────────────────────────────────────────────────────
 export const ERC20_ABI = [
