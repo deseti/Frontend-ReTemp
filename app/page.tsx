@@ -84,7 +84,7 @@ export default function LoginPage() {
           lineHeight: 1.1,
           marginBottom: 12,
         }}>
-          ReTemp<span style={{ color: 'var(--accent)' }}> Wallet</span>
+          ReTempo<span style={{ color: 'var(--accent)' }}> Wallet</span>
         </h1>
 
         <p style={{

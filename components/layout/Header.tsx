@@ -36,7 +36,7 @@ export function Header() {
           justifyContent: 'center',
           boxShadow: '0 4px 12px var(--accent-glow)',
         }}>
-          <Zap size={18} color="#fff" fill="#fff" />
+          <img src="/retempo.svg" alt="RETEMPO Logo" style={{width: '18px', height: '18px'}} />
         </div>
         <div>
           <div style={{
@@ -46,7 +46,7 @@ export function Header() {
             color: 'var(--text-primary)',
             lineHeight: 1.1,
           }}>
-            Tempo Wallet
+            RETEMPO
           </div>
           <div style={{
             fontSize: '0.68rem',

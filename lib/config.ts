@@ -84,7 +84,7 @@ export const SUPPORTED_TOKENS: Token[] = [
 
 // ─── Pool Addresses (Tempo Moderato Testnet — deployed 2026-03-09) ──────────────
 // pools[tokenA][tokenB] mirrors the router registry
-// Source: https://github.com/deseti/ReTemp/blob/main/contracts.md
+// Source: https://github.com/deseti/ReTempo/blob/main/contracts.md
 const ALPHA = '0x20C0000000000000000000000000000000000001' as `0x${string}`;
 const BETA  = '0x20C0000000000000000000000000000000000002' as `0x${string}`;
 const THETA = '0x20C0000000000000000000000000000000000003' as `0x${string}`;

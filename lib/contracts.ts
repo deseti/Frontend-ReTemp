@@ -1,5 +1,5 @@
-// ─── ReTempRouter ABI ──────────────────────────────────────────────────────────
-// Extracted from ReTempRouter.sol
+// ─── ReTempoRouter ABI ──────────────────────────────────────────────────────────
+// Extracted from ReTempoRouter.sol
 
 export const ROUTER_ABI = [
   // ── routeSwap ──────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ export const ROUTER_ABI = [
   },
 ] as const;
 
-// ─── ReTempPool ABI ──────────────────────────────────────────────────────────
+// ─── ReTempoPool ABI ──────────────────────────────────────────────────────────
 export const POOL_ABI = [
   {
     name: 'swap',
