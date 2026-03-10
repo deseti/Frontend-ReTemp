@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Send, QrCode, ArrowLeftRight, Droplets, Settings } from 'lucide-react';
+import { LayoutDashboard, Send, ArrowLeftRight, Droplets, Settings } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Home',     icon: LayoutDashboard },
   { href: '/send',      label: 'Send',     icon: Send },
-  { href: '/receive',   label: 'Receive',  icon: QrCode },
-  { href: '/swap',      label: 'Swap',     icon: ArrowLeftRight },
   { href: '/pool',      label: 'Pool',     icon: Droplets },
+  { href: '/swap',      label: 'Swap',     icon: ArrowLeftRight },
   { href: '/settings',  label: 'Account',  icon: Settings },
 ];
 

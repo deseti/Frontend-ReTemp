@@ -26,6 +26,11 @@ function formatAmount(value: bigint, decimals = DECIMALS, max = 4): string {
   });
 }
 
+function normalizeInput(value: string): string {
+  const trimmed = value.replace(/(?:\.0+|(\.\d*?[1-9])0+)$/, '$1');
+  return trimmed === '' ? '0' : trimmed;
+}
+
 export default function PoolPage() {
   const { ready, authenticated } = usePrivy();
   const router = useRouter();
@@ -42,6 +47,7 @@ export default function PoolPage() {
   const [quoteAddress, setQuoteAddress] = useState<`0x${string}` | undefined>(quoteTokens[0]?.address);
   const [amountA, setAmountA] = useState('');
   const [amountB, setAmountB] = useState('');
+  const [lastEdited, setLastEdited] = useState<'a' | 'b' | null>(null);
   const [sharesInput, setSharesInput] = useState('');
   const [addStep, setAddStep] = useState<AddStep>('idle');
   const [removeStep, setRemoveStep] = useState<RemoveStep>('idle');
@@ -126,6 +132,42 @@ export default function PoolPage() {
     }
   }, [sharesInput, totalShares, reserveB]);
 
+  const poolRatioText = useMemo(() => {
+    const reserveANum = Number(formatUnits(reserveA, DECIMALS));
+    const reserveBNum = Number(formatUnits(reserveB, DECIMALS));
+    if (!Number.isFinite(reserveANum) || !Number.isFinite(reserveBNum) || reserveANum <= 0 || reserveBNum <= 0) {
+      return 'Initial pool deposit: ratio is flexible.';
+    }
+    const ratio = reserveBNum / reserveANum;
+    return `Pool ratio: 1 ${resolvedTokenA?.symbol} ≈ ${ratio.toLocaleString('en-US', { maximumFractionDigits: 6 })} ${resolvedTokenB?.symbol}`;
+  }, [reserveA, reserveB, resolvedTokenA?.symbol, resolvedTokenB?.symbol]);
+
+  useEffect(() => {
+    if (tab !== 'add') return;
+    if (!amountA && !amountB) return;
+    if (reserveA <= BigInt(0) || reserveB <= BigInt(0)) return;
+
+    try {
+      if (lastEdited === 'a' && amountA) {
+        const amountABn = parseUnits(amountA, DECIMALS);
+        const nextB = formatUnits((amountABn * reserveB) / reserveA, DECIMALS);
+        if (normalizeInput(amountB || '0') !== normalizeInput(nextB || '0')) {
+          setAmountB(nextB);
+        }
+      }
+
+      if (lastEdited === 'b' && amountB) {
+        const amountBBn = parseUnits(amountB, DECIMALS);
+        const nextA = formatUnits((amountBBn * reserveA) / reserveB, DECIMALS);
+        if (normalizeInput(amountA || '0') !== normalizeInput(nextA || '0')) {
+          setAmountA(nextA);
+        }
+      }
+    } catch {
+      // Ignore temporary invalid decimal input while typing.
+    }
+  }, [tab, lastEdited, amountA, amountB, reserveA, reserveB]);
+
   useEffect(() => {
     if (isAddSuccess && addStep === 'adding') {
       setAddStep('success');
@@ -195,6 +237,7 @@ export default function PoolPage() {
     setAddStep('idle');
     setAmountA('');
     setAmountB('');
+    setLastEdited(null);
     setErrMsg('');
     setSharesAdded(BigInt(0));
     resetAdd();
@@ -295,6 +338,9 @@ export default function PoolPage() {
             <div style={{ color: 'var(--text-secondary)' }}>
               Your shares: {isPoolLoading ? 'Loading...' : formatAmount(userShares)}
             </div>
+            <div style={{ color: 'var(--accent)', marginTop: 8 }}>
+              {isPoolLoading ? 'Reading pool ratio...' : poolRatioText}
+            </div>
           </div>
 
           {tab === 'add' ? (
@@ -325,14 +371,20 @@ export default function PoolPage() {
                       step="any"
                       placeholder="0.00"
                       value={amountA}
-                      onChange={(event) => setAmountA(event.target.value)}
+                      onChange={(event) => {
+                        setLastEdited('a');
+                        setAmountA(event.target.value);
+                      }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                       <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
                         Balance: {balanceA?.balance ?? '0.00'} {resolvedTokenA?.symbol}
                       </span>
                       <button
-                        onClick={() => setAmountA(balanceA ? formatUnits(balanceA.balanceRaw, DECIMALS) : '0')}
+                        onClick={() => {
+                          setLastEdited('a');
+                          setAmountA(balanceA ? formatUnits(balanceA.balanceRaw, DECIMALS) : '0');
+                        }}
                         style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                       >
                         Max
@@ -351,14 +403,20 @@ export default function PoolPage() {
                       step="any"
                       placeholder="0.00"
                       value={amountB}
-                      onChange={(event) => setAmountB(event.target.value)}
+                      onChange={(event) => {
+                        setLastEdited('b');
+                        setAmountB(event.target.value);
+                      }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
                       <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
                         Balance: {balanceB?.balance ?? '0.00'} {resolvedTokenB?.symbol}
                       </span>
                       <button
-                        onClick={() => setAmountB(balanceB ? formatUnits(balanceB.balanceRaw, DECIMALS) : '0')}
+                        onClick={() => {
+                          setLastEdited('b');
+                          setAmountB(balanceB ? formatUnits(balanceB.balanceRaw, DECIMALS) : '0');
+                        }}
                         style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                       >
                         Max

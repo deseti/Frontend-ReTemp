@@ -85,10 +85,10 @@ export const SUPPORTED_TOKENS: Token[] = [
 // ─── Pool Addresses (Tempo Moderato Testnet — deployed 2026-03-09) ──────────────
 // pools[tokenA][tokenB] mirrors the router registry
 // Source: https://github.com/deseti/ReTempo/blob/main/contracts.md
-const ALPHA = '0x20C0000000000000000000000000000000000001' as `0x${string}`;
-const BETA  = '0x20C0000000000000000000000000000000000002' as `0x${string}`;
-const THETA = '0x20C0000000000000000000000000000000000003' as `0x${string}`;
-const PATH  = '0x20C0000000000000000000000000000000000000' as `0x${string}`;
+const ALPHA = '0x20c0000000000000000000000000000000000001' as `0x${string}`;
+const BETA  = '0x20c0000000000000000000000000000000000002' as `0x${string}`;
+const THETA = '0x20c0000000000000000000000000000000000003' as `0x${string}`;
+const PATH  = '0x20c0000000000000000000000000000000000000' as `0x${string}`;
 
 export const POOL_ADDRESSES: Record<string, Record<string, `0x${string}`>> = {
   // AlphaUSD ↔ BetaUSD
@@ -114,9 +114,11 @@ export function getPoolAddress(
   tokenA: `0x${string}`,
   tokenB: `0x${string}`,
 ): `0x${string}` | undefined {
+  const a = tokenA.toLowerCase();
+  const b = tokenB.toLowerCase();
   return (
-    POOL_ADDRESSES[tokenA]?.[tokenB] ??
-    POOL_ADDRESSES[tokenB]?.[tokenA]
+    POOL_ADDRESSES[a]?.[b] ??
+    POOL_ADDRESSES[b]?.[a]
   );
 }
 
