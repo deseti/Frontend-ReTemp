@@ -46,7 +46,7 @@ export function Header() {
             color: 'var(--text-primary)',
             lineHeight: 1.1,
           }}>
-            RETEMPO
+            ReTempo
           </div>
           <div style={{
             fontSize: '0.68rem',
