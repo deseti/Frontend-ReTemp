@@ -23,9 +23,10 @@ export function BottomNav() {
       transform: 'translateX(-50%)',
       width: '100%',
       maxWidth: 430,
-      background: 'rgba(13, 21, 38, 0.92)',
-      backdropFilter: 'blur(20px)',
-      borderTop: '1px solid var(--border)',
+      background: 'rgba(0,0,0,0.96)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderTop: '1px solid rgba(255,255,255,0.06)',
       display: 'flex',
       alignItems: 'center',
       padding: '8px 0',
@@ -48,7 +49,7 @@ export function BottomNav() {
               gap: 4,
               padding: '6px 0',
               textDecoration: 'none',
-              color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+              color: isActive ? '#ffffff' : '#444444',
               transition: 'color 0.2s',
               position: 'relative',
             }}
@@ -61,14 +62,15 @@ export function BottomNav() {
                 transform: 'translateX(-50%)',
                 width: 28,
                 height: 2,
-                background: 'var(--accent)',
+                background: '#ffffff',
                 borderRadius: '0 0 2px 2px',
+                boxShadow: '0 0 8px rgba(255,255,255,0.6)',
               }} />
             )}
             <Icon
               size={22}
-              fill={isActive ? 'var(--accent)' : 'none'}
-              color={isActive ? 'var(--accent)' : 'var(--text-muted)'}
+              fill={isActive ? '#ffffff' : 'none'}
+              color={isActive ? '#ffffff' : '#444444'}
               strokeWidth={isActive ? 2 : 1.8}
             />
             <span style={{

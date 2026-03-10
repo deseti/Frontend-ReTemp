@@ -2,7 +2,7 @@
 
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { AddressDisplay } from '@/components/ui/AddressDisplay';
-import { Zap, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export function Header() {
@@ -17,12 +17,14 @@ export function Header() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      borderBottom: '1px solid var(--border)',
-      background: 'var(--bg-base)',
+      borderBottom: '1px solid transparent',
+      borderImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent) 1',
+      background: 'rgba(0,0,0,0.85)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      backdropFilter: 'blur(12px)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
     }}>
       {/* Logo & App name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -30,13 +32,14 @@ export function Header() {
           width: 36,
           height: 36,
           borderRadius: 10,
-          background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+          background: '#111111',
+          border: '1.5px solid rgba(255,255,255,0.2)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 12px var(--accent-glow)',
+          boxShadow: '0 0 12px rgba(255,255,255,0.08), inset 0 0 8px rgba(255,255,255,0.04)',
         }}>
-          <img src="/retempo.svg" alt="RETEMPO Logo" style={{width: '18px', height: '18px'}} />
+          <img src="/retempo.svg" alt="RETEMPO Logo" style={{width: '18px', height: '18px', filter: 'brightness(0) invert(1)'}} />
         </div>
         <div>
           <div style={{
@@ -61,19 +64,42 @@ export function Header() {
       {/* Network badge + address + settings */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className="badge badge-green" style={{ fontSize: '0.65rem' }}>
-            <div className="status-dot" style={{ width: 6, height: 6 }} />
+          {/* Monochrome network badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '3px 9px',
+            borderRadius: 9999,
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            letterSpacing: '0.03em',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.14)',
+            color: 'rgba(255,255,255,0.75)',
+          }}>
+            <div className="status-dot" style={{ width: 5, height: 5 }} />
             Tempo • Testnet
           </div>
           <Link
             href="/settings"
             style={{
               width: 30, height: 30, borderRadius: 9,
-              background: 'var(--bg-elevated)',
+              background: 'rgba(255,255,255,0.04)',
               border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--text-muted)', textDecoration: 'none',
               transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.3)';
+              (e.currentTarget as HTMLElement).style.color = '#fff';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 0 8px rgba(255,255,255,0.1)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '';
             }}
             title="Account Settings"
           >
