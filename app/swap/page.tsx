@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseUnits, parseGwei } from 'viem';
+import { useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { parseUnits, formatUnits } from 'viem';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { TokenIcon } from '@/components/ui/TokenIcon';
@@ -27,6 +27,7 @@ export default function SwapPage() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash });
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
 
   useEffect(() => {
     if (ready && !authenticated) router.replace('/');
@@ -52,13 +53,16 @@ export default function SwapPage() {
       const minAmountOut = (amountBn * (BigInt(10000) - SLIPPAGE_BPS)) / BigInt(10000);
 
       setStep('approving');
-      await writeContractAsync({
+      const approveHash = await writeContractAsync({
         address: tIn.address,
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [ROUTER_ADDRESS, amountBn],
-        gasPrice: parseGwei('25'),
       });
+      
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      }
 
       setStep('swapping');
       const hash = await writeContractAsync({
@@ -66,7 +70,6 @@ export default function SwapPage() {
         abi: ROUTER_ABI,
         functionName: 'routeSwap',
         args: [tIn.address, tOut.address, amountBn, minAmountOut],
-        gasPrice: parseGwei('25'),
       });
       setTxHash(hash);
       setStep('success');
@@ -143,7 +146,7 @@ export default function SwapPage() {
                   <span style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
                     Balance: {balIn.balance} {tIn.symbol}
                   </span>
-                  <button onClick={() => setAmount(balIn.balance)} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0 }}>
+                  <button onClick={() => setAmount(formatUnits(balIn.balanceRaw, tIn.decimals))} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.73rem', cursor: 'pointer', padding: 0 }}>
                     Max
                   </button>
                 </div>

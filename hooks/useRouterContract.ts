@@ -1,7 +1,7 @@
 'use client';
 
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseUnits, parseGwei } from 'viem';
+import { parseUnits } from 'viem';
 import { ROUTER_ABI } from '@/lib/contracts';
 import { ROUTER_ADDRESS, ERC20_ABI } from '@/lib/config';
 
@@ -26,7 +26,6 @@ export function useRouteSwap() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ROUTER_ADDRESS, amount],
-      gasPrice: parseGwei('25'),
     });
 
     // Step 2: call routeSwap with minAmountOut slippage protection
@@ -35,7 +34,6 @@ export function useRouteSwap() {
       abi: ROUTER_ABI,
       functionName: 'routeSwap',
       args: [tokenIn, tokenOut, amount, minAmountOut],
-      gasPrice: parseGwei('25'),
     });
 
     return txHash;
@@ -60,7 +58,6 @@ export function usePayInvoice() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ROUTER_ADDRESS, approvalAmount],
-      gasPrice: parseGwei('25'),
     });
 
     // Step 2: pay (await fixed — was missing before)
@@ -69,7 +66,6 @@ export function usePayInvoice() {
       abi: ROUTER_ABI,
       functionName: 'payInvoice',
       args: [invoiceId, paymentTokenAddress],
-      gasPrice: parseGwei('25'),
     });
 
     return txHash;
@@ -90,7 +86,6 @@ export function useCreateInvoice() {
       abi: ROUTER_ABI,
       functionName: 'createInvoice',
       args: [tokenAddress, amountBn],
-      gasPrice: parseGwei('25'),
     });
     return txHash;
   }

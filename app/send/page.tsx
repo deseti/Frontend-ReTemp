@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseUnits, parseGwei } from 'viem';
+import { parseUnits, formatUnits } from 'viem';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { TokenIcon } from '@/components/ui/TokenIcon';
@@ -60,7 +60,6 @@ export default function SendPage() {
         functionName: 'transfer',
         args: [recipient as `0x${string}`, amountBn],
         chainId: tempoChain.id,
-        gasPrice: parseGwei('25'), // Paksa pakai legacy gasPrice minimum 25 Gwei untuk Tempo
       });
       setTxHash(hash);
       setStep('success');
@@ -174,7 +173,7 @@ export default function SendPage() {
               </div>
               {balance && (
                 <button
-                  onClick={() => setAmount(balance.balance)}
+                  onClick={() => setAmount(formatUnits(balance.balanceRaw, token.decimals))}
                   style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', marginTop: 6, padding: 0 }}
                 >
                   Use max
