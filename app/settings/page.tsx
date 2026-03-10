@@ -305,7 +305,7 @@ export default function SettingsPage() {
         </div>
 
         <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: 8, paddingBottom: 16 }}>
-          ReTempo Wallet · Tempo Blockchain
+          ReTempo · Tempo Blockchain
         </div>
       </main>
       <BottomNav />

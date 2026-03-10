@@ -16,11 +16,11 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'ReTempo Wallet – Tempo Network',
+  title: 'ReTempo – Tempo Network',
   description: 'Your crypto payment wallet powered by Tempo Payment Router. Send, receive, and swap tokens seamlessly.',
   keywords: ['web3', 'wallet', 'crypto', 'tempo', 'blockchain', 'payment'],
   openGraph: {
-    title: 'ReTempo Wallet',
+    title: 'ReTempo',
     description: 'Send and receive crypto on Tempo Network',
     type: 'website',
   },
